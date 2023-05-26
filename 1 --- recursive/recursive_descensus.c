@@ -1,26 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-float sum = 0;
-
-float recursive(unsigned int i, float x, int n) {
+float recursive(unsigned int i, float x, int n, float *sum) {
     if (i == 1) {
         float res = 1;
-        sum += res;
+        *sum += res;
 
-        printf("Result in %d iteration = %f; Sum of all iteration =%f;\n", i, res, sum);
+        printf("Result in %d iteration = %f; Sum of all iteration = %f;\n", i, res, *sum);
         return res;
     }
     else if (i <= n) {
         float res = 0;
 
-        printf("Result in %d iteration = %f; Sum of all iteration =%f;\n", i, res, sum);
+        printf("Result in %d iteration = %f; Sum of all iteration = %f;\n", i, res, *sum);
 
-        float prev = recursive(i - 1, x, n);
+        float prev = recursive(i - 1, x, n, sum);
         res = -1 * prev * x * (3 * i - 5) / (float)(3 * i - 3);
-        sum += res;
+        *sum += res;
 
-        printf("Result in %d iteration = %f; Sum of all iteration =%f;\n", i, res, sum);
+        printf("Result in %d iteration = %f; Sum of all iteration = %f;\n", i, res, *sum);
         return res;
     } else {
         return 0;
@@ -48,7 +46,8 @@ int main() {
     }
 
     printf("\n");
-    recursive(n, x, n);
+    float sum = 0;
+    recursive(n, x, n, &sum);
 
     return 0;
 }
