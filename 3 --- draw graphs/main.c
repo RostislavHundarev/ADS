@@ -151,114 +151,116 @@ LRESULT CALLBACK WndProc(HWND hWnd,
             double coefficient = 1.0 - 0 * 0.02 - 4 * 0.005 - 0.25;
             double ** A = mulmr(coefficient, T, 10, 10);
 
-            printf("Matrix graph:\n");
-            for (int i = 0; i < 10; i++) {
-                for (int j = 0; j < 10; j++) {
-                    printf("%g ", A[i][j]);
+            void printGraphMatrix(double **A) {
+                printf("Matrix graph:\n");
+                for (int i = 0; i < 10; i++) {
+                    for (int j = 0; j < 10; j++) {
+                        printf("%g ", A[i][j]);
+                    }
+                    printf("\n");
                 }
-                printf("\n");
-
             }
 
-void drawPoints(HDC hdc, HPEN hPen, int* nx, int* ny, int n, int dx, int dy, int dtx) {
-    SelectObject(hdc, hPen);
-    for (int i = 0; i < n; i++) {
-        Ellipse(hdc, nx[i] - dx, ny[i] - dy, nx[i] + dx, ny[i] + dy);
-        if (i < 9) {
-            TextOut(hdc, nx[i] - dtx, ny[i] - dy / 2, nn[i], 1);
-        } else {
-            TextOut(hdc, nx[i] - dtx, ny[i] - dy / 2, nn[i], 2);
-        }
-    }
-}
+            void drawPoints(HDC hdc, HPEN hPen, int* nx, int* ny, int n, int dx, int dy, int dtx) {
+                SelectObject(hdc, hPen);
+                for (int i = 0; i < n; i++) {
+                    Ellipse(hdc, nx[i] - dx, ny[i] - dy, nx[i] + dx, ny[i] + dy);
+                    if (i < 9) {
+                        TextOut(hdc, nx[i] - dtx, ny[i] - dy / 2, nn[i], 1);
+                    } else {
+                        TextOut(hdc, nx[i] - dtx, ny[i] - dy / 2, nn[i], 2);
+                    }
+                }
+            }
 
-void drawLines(HDC hdc, int dist, int dx, int dy, int* nx, int* ny) {
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 10; j++) {
-            if (A[i][j] == 1) {
-                if ((nx[j] != ny[i] + 2 * dist) && (nx[j] != nx[i] + 4 * dist - dist * 1.25)){ // not 1 -> 10
-                    MoveToEx(hdc, nx[i], ny[i], NULL);
-                    LineTo(hdc, nx[j], ny[j]);
-                    if (A[j][i] != A[i][j]){
-                        if (nx[j] != nx[i] - 3 * dist){ // not 8 -> 5
-                            drawArrow(nx[i], ny[i], nx[j], ny[j], dx, hdc);
+            void drawLines(HDC hdc, int dist, int dx, int dy, int* nx, int* ny) {
+                for (int i = 0; i < 10; i++) {
+                    for (int j = 0; j < 10; j++) {
+                        if (A[i][j] == 1) {
+                            if ((nx[j] != ny[i] + 2 * dist) && (nx[j] != nx[i] + 4 * dist - dist * 1.25)){ // not 1 -> 10
+                                MoveToEx(hdc, nx[i], ny[i], NULL);
+                                LineTo(hdc, nx[j], ny[j]);
+                                if (A[j][i] != A[i][j]){
+                                    if (nx[j] != nx[i] - 3 * dist){ // not 8 -> 5
+                                        drawArrow(nx[i], ny[i], nx[j], ny[j], dx, hdc);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-    }
-}
 
-void brokenLines(HDC hdc, int dist, int dx, int dy, int* nx, int* ny) {
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            if (A[i][j] == 1) {
-                double halfDistY = ((ny[j] - ny[i]) / 2) + ny[i];
-                double halfDistX = ((nx[j] - nx[i]) / 2) + nx[i];
+            void brokenLines(HDC hdc, int dist, int dx, int dy, int* nx, int* ny) {
+                for (int i = 0; i < n; i++) {
+                    for (int j = 0; j < n; j++) {
+                        if (A[i][j] == 1) {
+                            double halfDistY = ((ny[j] - ny[i]) / 2) + ny[i];
+                            double halfDistX = ((nx[j] - nx[i]) / 2) + nx[i];
 
-                if (A[i][j] == A[j][i]) {
-                    if (ny[i] + 1 * dist == ny[j] && (nx[i] == nx[j])) { // 2 -> 1
-                        drawArrow(nx[i],ny[i], nx[j], ny[j], dx, hdc);
-                        MoveToEx(hdc, nx[j] + dx / 2, ny[j] + dy / 2, NULL);
-                        LineTo(hdc, nx[i] + dx * 2 , halfDistY);
-                        LineTo(hdc, nx[i], ny[i]);
-                        drawArrow(nx[i] + dx * 2 , halfDistY, nx[i], ny[i], dx, hdc);
-                    } else if (nx[i] + 1 * dist == nx[j] && (ny[i] == ny[j])){  // 5 -> 4 or 8 -> 7
-                        drawArrow(nx[i],ny[i], nx[j], ny[j], dx, hdc);
-                        MoveToEx(hdc, nx[j] - dx, ny[j] - dy / 2, NULL);
-                        LineTo(hdc, halfDistX, ny[j] - dy * 2);
-                        LineTo(hdc, nx[i], ny[i]);
-                        drawArrow(halfDistX, ny[j] - dy * 2, nx[i], ny[i], dx, hdc);
-                    } else if (ny[i] - dist == ny[j] && (nx[i] + 4 * dist - dist * 1.25 == nx[j])) { // 9 -> 4
-                        drawArrow(nx[i],ny[i], nx[j], ny[j], dx, hdc);
-                        MoveToEx(hdc, nx[j], ny[j], NULL);
-                        LineTo(hdc, halfDistX, halfDistY - 50);
-                        LineTo(hdc, nx[i], ny[i]);
-                        drawArrow(halfDistX, halfDistY - 50, nx[i], ny[i], dx, hdc);
-                    } else if ((ny[i] + dist == ny[j]) && (nx[i] + 4 * dist == nx[j])) { // 8 -> 3
-                        drawArrow(nx[i],ny[i], nx[j], ny[j], dx, hdc);
-                        MoveToEx(hdc, nx[j], ny[j], NULL);
-                        LineTo(hdc, halfDistX, halfDistY - 150);
-                        LineTo(hdc, nx[i], ny[i]);
-                        drawArrow(halfDistX, halfDistY - 150, nx[i], ny[i], dx, hdc);
+                            if (A[i][j] == A[j][i]) {
+                                if (ny[i] + 1 * dist == ny[j] && (nx[i] == nx[j])) { // 2 -> 1
+                                    drawArrow(nx[i],ny[i], nx[j], ny[j], dx, hdc);
+                                    MoveToEx(hdc, nx[j] + dx / 2, ny[j] + dy / 2, NULL);
+                                    LineTo(hdc, nx[i] + dx * 2 , halfDistY);
+                                    LineTo(hdc, nx[i], ny[i]);
+                                    drawArrow(nx[i] + dx * 2 , halfDistY, nx[i], ny[i], dx, hdc);
+                                } else if (nx[i] + 1 * dist == nx[j] && (ny[i] == ny[j])){  // 5 -> 4 or 8 -> 7
+                                    drawArrow(nx[i],ny[i], nx[j], ny[j], dx, hdc);
+                                    MoveToEx(hdc, nx[j] - dx, ny[j] - dy / 2, NULL);
+                                    LineTo(hdc, halfDistX, ny[j] - dy * 2);
+                                    LineTo(hdc, nx[i], ny[i]);
+                                    drawArrow(halfDistX, ny[j] - dy * 2, nx[i], ny[i], dx, hdc);
+                                } else if (ny[i] - dist == ny[j] && (nx[i] + 4 * dist - dist * 1.25 == nx[j])) { // 9 -> 4
+                                    drawArrow(nx[i],ny[i], nx[j], ny[j], dx, hdc);
+                                    MoveToEx(hdc, nx[j], ny[j], NULL);
+                                    LineTo(hdc, halfDistX, halfDistY - 50);
+                                    LineTo(hdc, nx[i], ny[i]);
+                                    drawArrow(halfDistX, halfDistY - 50, nx[i], ny[i], dx, hdc);
+                                } else if ((ny[i] + dist == ny[j]) && (nx[i] + 4 * dist == nx[j])) { // 8 -> 3
+                                    drawArrow(nx[i],ny[i], nx[j], ny[j], dx, hdc);
+                                    MoveToEx(hdc, nx[j], ny[j], NULL);
+                                    LineTo(hdc, halfDistX, halfDistY - 150);
+                                    LineTo(hdc, nx[i], ny[i]);
+                                    drawArrow(halfDistX, halfDistY - 150, nx[i], ny[i], dx, hdc);
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }
-    }
-}
 
-void drawArcs(HDC hdc, int dist, int dx, int dy, int* nx, int* ny) {
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            if (A[i][j] == 1) {
-                if ((ny[i] == ny[j]) && (nx[j] != nx[i] + dist) && (nx[j] != nx[i] - dist)) {
-                    if (nx[j] - 2 * dist == nx[i]) { // 5 -> 7
-                        Arc(hdc, nx[j] + dx / 2, ny[j] - dy * 3, nx[i], ny[i] + 40, nx[i], ny[i], nx[j], ny[j]);
-                        arrow(5.8, nx[j] - dx / 1.4 , ny[j] + dy / 1.5, hdc);
+            void drawArcs(HDC hdc, int dist, int dx, int dy, int* nx, int* ny) {
+                for (int i = 0; i < n; i++) {
+                    for (int j = 0; j < n; j++) {
+                        if (A[i][j] == 1) {
+                            if ((ny[i] == ny[j]) && (nx[j] != nx[i] + dist) && (nx[j] != nx[i] - dist)) {
+                                if (nx[j] - 2 * dist == nx[i]) { // 5 -> 7
+                                    Arc(hdc, nx[j] + dx / 2, ny[j] - dy * 3, nx[i], ny[i] + 40, nx[i], ny[i], nx[j], ny[j]);
+                                    arrow(5.8, nx[j] - dx / 1.4 , ny[j] + dy / 1.5, hdc);
+                                }
+                                else if (nx[i] - 3 * dist == nx[j] && j < 5) { // 8 -> 5
+                                    Arc(hdc, nx[i] + dx / 2, ny[i] - dy * 3, nx[j], ny[j] + 70, nx[j], ny[j], nx[i], ny[i]);
+                                    arrow(10, nx[j] + dx / 3 , ny[j] + dy / 1.1, hdc);
+                                }
+                            } else if ((ny[i] + 2 * dist == ny[j]) & (i < 2) & (j > 7)){ // 1 -> 9
+                                Arc(hdc, nx[j] + dist, ny[j] + dy * 2, nx[i] - dist, ny[i] - 2 * dy, nx[j], ny[j], nx[i], ny[i]);
+                                arrow(2.8, nx[j] + dx / 2, ny[j] - dy / 2, hdc);
+                            }
+                        }
                     }
-                    else if (nx[i] - 3 * dist == nx[j] && j < 5) { // 8 -> 5
-                        Arc(hdc, nx[i] + dx / 2, ny[i] - dy * 3, nx[j], ny[j] + 70, nx[j], ny[j], nx[i], ny[i]);
-                        arrow(10, nx[j] + dx / 3 , ny[j] + dy / 1.1, hdc);
-                    }
-                } else if ((ny[i] + 2 * dist == ny[j]) & (i < 2) & (j > 7)){ // 1 -> 9
-                    Arc(hdc, nx[j] + dist, ny[j] + dy * 2, nx[i] - dist, ny[i] - 2 * dy, nx[j], ny[j], nx[i], ny[i]);
-                    arrow(2.8, nx[j] + dx / 2, ny[j] - dy / 2, hdc);
                 }
             }
-        }
-    }
-}
 
-drawLines(hdc, dist, dx, dy, nx, ny);
-brokenLines(hdc, dist, dx, dy, nx, ny);
-drawArcs(hdc, dist, dx, dy, nx, ny);
-HPEN hPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 255));
-drawPoints(hdc, hPen, nx, ny, n, dx, dy, dtx);
-freeMatrix(T, 10);
-freeMatrix(A, 10);
-DeleteObject(hPen);
+            printGraphMatrix(A);
+            drawLines(hdc, dist, dx, dy, nx, ny);
+            brokenLines(hdc, dist, dx, dy, nx, ny);
+            drawArcs(hdc, dist, dx, dy, nx, ny);
+            HPEN hPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 255));
+            drawPoints(hdc, hPen, nx, ny, n, dx, dy, dtx);
+            freeMatrix(T, 10);
+            freeMatrix(A, 10);
+            DeleteObject(hPen);
 
             EndPaint(hWnd, & ps);
             break;
